@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { CharStatus } from "@/hooks/useTypingEngine";
+import { playKeyClick } from "@/lib/sound";
+import { useSettings } from "@/lib/settings";
 
 type Props = {
   target: string;
@@ -15,6 +17,7 @@ type Props = {
 export function TypingArea({ target, value, statuses, onChangeValue, disabled, scrollable }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const currentRef = useRef<HTMLSpanElement>(null);
+  const { settings } = useSettings();
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -36,7 +39,14 @@ export function TypingArea({ target, value, statuses, onChangeValue, disabled, s
         ref={inputRef}
         value={value}
         disabled={disabled}
-        onChange={(e) => onChangeValue(e.target.value)}
+        onChange={(e) => {
+          const next = e.target.value;
+          if (settings.soundEnabled && next.length > value.length) {
+            const i = next.length - 1;
+            playKeyClick(next[i] === target[i]);
+          }
+          onChangeValue(next);
+        }}
         className="absolute inset-0 opacity-0 pointer-events-none"
         autoComplete="off"
         autoCapitalize="off"
