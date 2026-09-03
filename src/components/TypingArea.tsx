@@ -9,18 +9,27 @@ type Props = {
   statuses: CharStatus[];
   onChangeValue: (value: string) => void;
   disabled?: boolean;
+  scrollable?: boolean;
 };
 
-export function TypingArea({ target, value, statuses, onChangeValue, disabled }: Props) {
+export function TypingArea({ target, value, statuses, onChangeValue, disabled, scrollable }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const currentRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
+  useEffect(() => {
+    if (scrollable) currentRef.current?.scrollIntoView({ block: "center" });
+  }, [value.length, scrollable]);
+
   return (
     <div
-      className="relative w-full max-w-3xl mx-auto cursor-text"
+      className={[
+        "relative w-full max-w-3xl mx-auto cursor-text",
+        scrollable ? "max-h-32 overflow-hidden" : "",
+      ].join(" ")}
       onClick={() => inputRef.current?.focus()}
     >
       <input
@@ -43,7 +52,7 @@ export function TypingArea({ target, value, statuses, onChangeValue, disabled }:
             incorrect: "text-rose-400 bg-rose-500/10",
           };
           return (
-            <span key={i} className={classes[status]}>
+            <span key={i} ref={status === "current" ? currentRef : undefined} className={classes[status]}>
               {char}
             </span>
           );

@@ -12,7 +12,13 @@ export type TypingResult = {
   keyErrors: Record<string, number>;
 };
 
-export function useTypingEngine(target: string) {
+type Options = {
+  /** If set, the session force-finishes after this many seconds instead of waiting for full-text completion. */
+  durationSeconds?: number;
+};
+
+export function useTypingEngine(target: string, options?: Options) {
+  const durationSeconds = options?.durationSeconds;
   const [value, setValue] = useState("");
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [result, setResult] = useState<TypingResult | null>(null);
@@ -26,6 +32,27 @@ export function useTypingEngine(target: string) {
     keyErrorsRef.current = {};
     seenErrorAtIndex.current = new Set();
   }, []);
+
+  const finalize = useCallback(
+    (next: string, elapsedMsOverride?: number) => {
+      const elapsedMs = Math.max(elapsedMsOverride ?? Date.now() - (startedAt ?? Date.now()), 1000);
+      const minutes = elapsedMs / 60000;
+      let correct = 0;
+      for (let i = 0; i < next.length; i++) {
+        if (next[i] === target[i]) correct++;
+      }
+      const wpm = Math.round(correct / 5 / minutes);
+      const accuracy = next.length === 0 ? 0 : Math.round((correct / next.length) * 100);
+      setResult({
+        wpm: Number.isFinite(wpm) ? wpm : 0,
+        accuracy,
+        timeSeconds: Math.round(elapsedMs / 1000),
+        mistakes: next.length - correct,
+        keyErrors: { ...keyErrorsRef.current },
+      });
+    },
+    [target, startedAt]
+  );
 
   const onChangeValue = useCallback(
     (next: string) => {
@@ -47,25 +74,11 @@ export function useTypingEngine(target: string) {
 
       setValue(next);
 
-      if (next.length === target.length) {
-        const elapsedMs = Math.max(Date.now() - (startedAt ?? Date.now()), 1000);
-        const minutes = elapsedMs / 60000;
-        let correct = 0;
-        for (let i = 0; i < target.length; i++) {
-          if (next[i] === target[i]) correct++;
-        }
-        const wpm = Math.round(correct / 5 / minutes);
-        const accuracy = Math.round((correct / target.length) * 100);
-        setResult({
-          wpm: Number.isFinite(wpm) ? wpm : 0,
-          accuracy,
-          timeSeconds: Math.round(elapsedMs / 1000),
-          mistakes: target.length - correct,
-          keyErrors: { ...keyErrorsRef.current },
-        });
+      if (!durationSeconds && next.length === target.length) {
+        finalize(next);
       }
     },
-    [target, startedAt, result]
+    [target, startedAt, result, durationSeconds, finalize]
   );
 
   const statuses = useMemo<CharStatus[]>(() => {
@@ -82,9 +95,25 @@ export function useTypingEngine(target: string) {
   const [, forceTick] = useState(0);
   useEffect(() => {
     if (!startedAt || result) return;
-    const id = setInterval(() => forceTick((n) => n + 1), 500);
+    const id = setInterval(() => forceTick((n) => n + 1), 250);
     return () => clearInterval(id);
   }, [startedAt, result]);
+
+  // force-finish a timed session once the clock runs out
+  useEffect(() => {
+    if (!durationSeconds || !startedAt || result) return;
+    const elapsed = (Date.now() - startedAt) / 1000;
+    if (elapsed >= durationSeconds) {
+      finalize(value, durationSeconds * 1000);
+    }
+  });
+
+  const timeLeft = useMemo(() => {
+    if (!durationSeconds) return undefined;
+    if (!startedAt) return durationSeconds;
+    const elapsed = (Date.now() - startedAt) / 1000;
+    return Math.max(0, Math.ceil(durationSeconds - elapsed));
+  }, [durationSeconds, startedAt]);
 
   const liveWpm = useMemo(() => {
     if (result) return result.wpm;
@@ -104,5 +133,16 @@ export function useTypingEngine(target: string) {
     return Math.round((correct / value.length) * 100);
   }, [value, target, result]);
 
-  return { value, onChangeValue, statuses, nextChar, progress, result, reset, liveWpm, liveAccuracy };
+  return {
+    value,
+    onChangeValue,
+    statuses,
+    nextChar,
+    progress,
+    result,
+    reset,
+    liveWpm,
+    liveAccuracy,
+    timeLeft,
+  };
 }

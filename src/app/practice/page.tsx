@@ -9,6 +9,7 @@ import { ResultsScreen } from "@/components/ResultsScreen";
 import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { QUOTES, randomQuote } from "@/lib/quotes";
 import { recordSession } from "@/lib/storage";
+import { sessionResultMessage } from "@/lib/mascot";
 
 export default function PracticePage() {
   const [target, setTarget] = useState(QUOTES[0]);
@@ -40,7 +41,13 @@ export default function PracticePage() {
         <p className="text-sm text-neutral-500 mb-8">Free Practice</p>
 
         {engine.result ? (
-          <ResultsScreen result={engine.result} onRetry={() => engine.reset()} onNext={handleNext} nextLabel="New Quote" />
+          <ResultsScreen
+            result={engine.result}
+            onRetry={() => engine.reset()}
+            onNext={handleNext}
+            nextLabel="New Quote"
+            mascotMessage={sessionResultMessage(engine.result)}
+          />
         ) : (
           <>
             <StatsBar wpm={engine.liveWpm} accuracy={engine.liveAccuracy} progress={engine.progress} />

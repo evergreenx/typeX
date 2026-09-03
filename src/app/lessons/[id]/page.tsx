@@ -10,6 +10,7 @@ import { ResultsScreen } from "@/components/ResultsScreen";
 import { useTypingEngine } from "@/hooks/useTypingEngine";
 import { getLesson, LESSONS } from "@/lib/lessons";
 import { recordSession } from "@/lib/storage";
+import { sessionResultMessage } from "@/lib/mascot";
 import Link from "next/link";
 
 export default function LessonPage({ params }: { params: Promise<{ id: string }> }) {
@@ -72,6 +73,7 @@ export default function LessonPage({ params }: { params: Promise<{ id: string }>
             onRetry={() => engine.reset()}
             onNext={handleNext}
             nextLabel={isLastDrill ? "Next Lesson" : "Next Drill"}
+            mascotMessage={sessionResultMessage(engine.result)}
           />
         ) : (
           <>

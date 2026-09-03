@@ -7,6 +7,9 @@ export function Nav() {
         type<span className="text-emerald-400">X</span>
       </Link>
       <nav className="flex gap-6 text-sm text-neutral-400">
+        <Link href="/speed-test" className="hover:text-neutral-100 transition">
+          Speed Test
+        </Link>
         <Link href="/lessons" className="hover:text-neutral-100 transition">
           Lessons
         </Link>

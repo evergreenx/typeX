@@ -1,17 +1,24 @@
 import { TypingResult } from "@/hooks/useTypingEngine";
 import { Keyboard } from "@/components/Keyboard";
+import { Mascot } from "@/components/Mascot";
+import { MascotMessage } from "@/lib/mascot";
 
 type Props = {
   result: TypingResult;
   onRetry: () => void;
   onNext?: () => void;
   nextLabel?: string;
+  mascotMessage?: MascotMessage;
 };
 
-export function ResultsScreen({ result, onRetry, onNext, nextLabel }: Props) {
+export function ResultsScreen({ result, onRetry, onNext, nextLabel, mascotMessage }: Props) {
   return (
     <div className="w-full max-w-2xl mx-auto text-center">
-      <h2 className="text-2xl font-semibold mb-8">Nice work.</h2>
+      {mascotMessage && (
+        <div className="flex justify-center mb-8">
+          <Mascot message={mascotMessage} />
+        </div>
+      )}
 
       <div className="grid grid-cols-4 gap-4 mb-10">
         <Metric label="WPM" value={result.wpm} />

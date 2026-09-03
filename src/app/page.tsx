@@ -1,12 +1,18 @@
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Dashboard } from "@/components/Dashboard";
+import { Mascot } from "@/components/Mascot";
+import { welcomeMessage } from "@/lib/mascot";
 
 export default function Home() {
   return (
     <div className="flex-1 flex flex-col">
       <Nav />
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-12">
+        <div className="mb-8">
+          <Mascot message={welcomeMessage()} />
+        </div>
+
         <h1 className="text-4xl sm:text-5xl font-semibold text-center tracking-tight mb-4">
           Type faster.<br />Type without looking.
         </h1>
@@ -17,10 +23,16 @@ export default function Home() {
 
         <Dashboard />
 
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-wrap justify-center">
+          <Link
+            href="/speed-test"
+            className="px-6 py-3 rounded-lg bg-emerald-500 text-black font-medium hover:bg-emerald-400 transition"
+          >
+            Take the Speed Test
+          </Link>
           <Link
             href="/lessons"
-            className="px-6 py-3 rounded-lg bg-emerald-500 text-black font-medium hover:bg-emerald-400 transition"
+            className="px-6 py-3 rounded-lg border border-neutral-700 hover:bg-neutral-900 transition"
           >
             Start Lessons
           </Link>
