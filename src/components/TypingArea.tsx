@@ -1,0 +1,54 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import { CharStatus } from "@/hooks/useTypingEngine";
+
+type Props = {
+  target: string;
+  value: string;
+  statuses: CharStatus[];
+  onChangeValue: (value: string) => void;
+  disabled?: boolean;
+};
+
+export function TypingArea({ target, value, statuses, onChangeValue, disabled }: Props) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  return (
+    <div
+      className="relative w-full max-w-3xl mx-auto cursor-text"
+      onClick={() => inputRef.current?.focus()}
+    >
+      <input
+        ref={inputRef}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChangeValue(e.target.value)}
+        className="absolute inset-0 opacity-0 pointer-events-none"
+        autoComplete="off"
+        autoCapitalize="off"
+        spellCheck={false}
+      />
+      <p className="font-mono text-2xl leading-relaxed tracking-wide">
+        {target.split("").map((char, i) => {
+          const status = statuses[i];
+          const classes: Record<CharStatus, string> = {
+            pending: "text-neutral-600",
+            current: "text-neutral-100 border-b-2 border-emerald-400 animate-pulse",
+            correct: "text-emerald-400",
+            incorrect: "text-rose-400 bg-rose-500/10",
+          };
+          return (
+            <span key={i} className={classes[status]}>
+              {char}
+            </span>
+          );
+        })}
+      </p>
+    </div>
+  );
+}
